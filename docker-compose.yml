@@ -1,0 +1,13 @@
+name: ai-develop-container
+
+services:
+  ai-develop-container:
+    # 构建后镜像的名称和标签
+    image: ai-develop-container:1.0.0
+    container_name: ai-develop-container
+    networks:
+      - default
+    volumes:
+      - .:/root/ai-develop-container
+    working_dir: /root/ai-develop-container
+    command: ["sleep", 'infinity']
