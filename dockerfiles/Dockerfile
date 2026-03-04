@@ -23,23 +23,25 @@ ARG INSTALL_LIST="$INSTALL_LIST python3-dev"
 ARG INSTALL_LIST="$INSTALL_LIST postgresql-client"
 ARG INSTALL_LIST="$INSTALL_LIST redis-tools"
 
-# 自定义镜像源
-ARG MIRRORS_URL="mirrors.tencentyun.com"
+# 自定义镜像源 (本地构建可传入，如 MIRRORS_URL=mirrors.ustc.edu.cn)
+# CI 环境不传此参数，使用官方源
+ARG MIRRORS_URL=""
 
 # 是否清理 apt 缓存
 ARG CLEAN_APT_CACHE=1
 
 # 安装软件
 ENV DEBIAN_FRONTEND=noninteractive
-# set -x 选项会使得每个命令在执行前都会被打印出来，报错时会显示是哪个命令出错
 RUN set -x && \
     sed -i 's/#force_color_prompt=yes/force_color_prompt=yes/g' ${HOME}/.bashrc && \
-    sed -i -e "s#//.*archive.ubuntu.com#//${MIRRORS_URL}#g" -e "s#//ports.ubuntu.com#//${MIRRORS_URL}#g" /etc/apt/sources.list.d/ubuntu.sources && \
+    if [ -n "${MIRRORS_URL}" ]; then \
+      sed -i -e "s#//.*archive.ubuntu.com#//${MIRRORS_URL}#g" -e "s#//ports.ubuntu.com#//${MIRRORS_URL}#g" /etc/apt/sources.list.d/ubuntu.sources; \
+    fi && \
     apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ${INSTALL_LIST} && \
     apt-get autoremove -y && \
     if [ $CLEAN_APT_CACHE -ne 1 ]; then { apt-get clean all; rm -rf /var/lib/apt/lists/*; } fi && \
-    localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8 
+    localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8
 
 ENV LANG=zh_CN.utf8
 
@@ -68,8 +70,9 @@ RUN npm install -g @costrict/cs
 # 使用 uv
 COPY --from=uv-builder /uv /uvx /bin/
 
-# UV 的环境变量
-ENV UV_DEFAULT_INDEX="https://mirrors.cloud.tencent.com/pypi/simple/"
+# UV 的环境变量 (本地构建可传入国内镜像，CI 使用官方源)
+ARG UV_DEFAULT_INDEX="https://pypi.org/simple"
+ENV UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}
 
 # ============================================================
 #   Golang 环境

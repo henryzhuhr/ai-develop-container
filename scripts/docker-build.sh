@@ -33,15 +33,17 @@ CLEAN_APT_CACHE=${CLEAN_APT_CACHE:-1}
 PLATFORMS=${PLATFORMS:-""}
 
 # ============================================================
-#   镜像源配置
+#   镜像源配置 (本地使用国内镜像，CI 使用官方源)
 # ============================================================
 if [ "${ENABLE_GLOBAL_MIRROR}" -eq 1 ]; then
   echo "暂不支持，联系开发者添加内网镜像加速功能"
   exit 1
 else
+  # 本地构建使用国内镜像源加速
   MIRRORS_URL="mirrors.ustc.edu.cn"
   GHCR_MIRROR="ghcr.io"
   NPM_CONFIG_REGISTRY="https://registry.npmjs.org"
+  UV_DEFAULT_INDEX="https://pypi.tuna.tsinghua.edu.cn/simple"
 fi
 
 # ============================================================
@@ -79,6 +81,7 @@ BUILD_ARGS=(
   "--build-arg" "MIRRORS_URL=${MIRRORS_URL}"
   "--build-arg" "NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}"
   "--build-arg" "CLEAN_APT_CACHE=${CLEAN_APT_CACHE}"
+  "--build-arg" "UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}"
 )
 
 # 如果指定了平台，使用 buildx 进行多架构构建
