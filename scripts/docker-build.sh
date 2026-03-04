@@ -11,7 +11,7 @@ ENABLE_GLOBAL_MIRROR=0
 #   构建的镜像配置
 # =============================================================
 IMAGE_NAME=ai-develop-container
-IMAGE_TAG=1.0.0
+IMAGE_TAG=0.0.1-dev
 # IMAGE_TAG=$(date +%Y%m%d%H%M%S)
 
 # ============================================================
@@ -24,6 +24,7 @@ GO_TAG=1.25
 
 
 if [ "${ENABLE_GLOBAL_MIRROR}" -eq 1 ]; then
+  echo "暂不支持，联系开发者添加内网镜像加速功能"
   exit
 else
   MIRRORS_URL="mirrors.ustc.edu.cn"
