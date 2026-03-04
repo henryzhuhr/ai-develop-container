@@ -1,0 +1,30 @@
+# 环境变量文件
+.env
+
+# Docker
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# macOS
+.DS_Store
+
+# 临时文件
+tmp/
+temp/
+
+# ========================
+#   Global/VisualStudioCode.gitignore
+# https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
+# ========================
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+!*.code-workspace
+
+# Built Visual Studio Code Extensions
+*.vsix
