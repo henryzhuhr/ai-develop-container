@@ -1,5 +1,9 @@
 # 开发文档
 
+## CI 文档
+
+- [Build and Push Image 流水线维护说明](./build-and-push-image-workflow.md)
+
 ## 构建镜像
 
 ```bash
@@ -24,4 +28,3 @@ docker run -it --rm \
     -w "/root/$(basename $(pwd))" \
     ai-develop-container:1.0.0 cs
 ```
-

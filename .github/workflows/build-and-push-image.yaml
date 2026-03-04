@@ -1,13 +1,17 @@
 name: Build and Push Image
 
+# 本地测试构建：
+#   GO_TAG=1.24 IMAGE_TAG=test bash scripts/docker-build.sh
+#   docker images | grep ai-develop-container
+
 on:
-  release:
-    types: [published]
   push:
     tags:
       - 'v*' # 匹配所有以 v 开头的 tag，例如 v1.0.0
     branches:
       - main
+      - 'feature/*'
+  workflow_dispatch:
 
 jobs:
   build-multi-go-multi-arch:
@@ -16,10 +20,9 @@ jobs:
     permissions:
       contents: read
       packages: write
-      attestations: write
-      id-token: write
-      
+
     strategy:
+      fail-fast: false
       matrix:
         go_version:
           - "1.20"
@@ -27,57 +30,59 @@ jobs:
           - "1.22"
           - "1.23"
           - "1.24"
-        platforms:
-          - linux/amd64
-          - linux/arm64
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Determine image tags
         id: tags
+        env:
+          GO_VERSION: ${{ matrix.go_version }}
         run: |
-          GO_TAG=go${{ matrix.go_version }}
-          PLATFORM_TAG="${GO_TAG}-${{ matrix.platforms }}"
-          # 替换平台中的 `/` 为 `_`
-          PLATFORM_TAG=$(echo "$PLATFORM_TAG" | tr '/' '_')
-          echo "tags=$GO_TAG" >> $GITHUB_OUTPUT
-          echo "platform_tag=$PLATFORM_TAG" >> $GITHUB_OUTPUT
+          GO_TAG="go${GO_VERSION}"
+          TAGS="ai-develop-container:ci-${GO_TAG}"
+
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            TAG=$(echo $GITHUB_REF | sed 's/refs\/tags\///')
-            echo "tag=$TAG" >> $GITHUB_OUTPUT
-          else
-            echo "tag=" >> $GITHUB_OUTPUT
+            REF_TAG="${GITHUB_REF#refs/tags/}"
+            TAGS="ghcr.io/${{ github.repository }}:${REF_TAG}-${GO_TAG}"
+            if [[ "${GO_VERSION}" == "1.24" ]]; then
+              TAGS="${TAGS}"$'\n'"ghcr.io/${{ github.repository }}:${REF_TAG}"
+            fi
+          elif [[ "$GITHUB_REF" == "refs/heads/main" && "${GO_VERSION}" == "1.24" ]]; then
+            TAGS="ghcr.io/${{ github.repository }}:latest"
           fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
 
       # group: login and push to GHCR
       - name: Log in to GHCR
-        uses: docker/login-action@v2
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && matrix.go_version == '1.24') }}
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image for Go ${{ matrix.go_version }} on ${{ matrix.platforms }}
+      - name: Build and push multi-arch image for Go ${{ matrix.go_version }}
+        # 本地单架构测试：GO_TAG=${{ matrix.go_version }} bash scripts/docker-build.sh
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./dockerfiles/Dockerfile
-          push: true
-          tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.platform_tag }}
-            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.tags }}
-            
-          # ${{ steps.tags.outputs.tag != '' && format('ghcr.io/{0}:{1}', github.repository, steps.tags.outputs.tag) }}
+          push: ${{ startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && matrix.go_version == '1.24') }}
+          tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            GO_VERSION=${{ matrix.go_version }}
-          platforms: |
-            ${{ matrix.platforms }}
+            GO_TAG=${{ matrix.go_version }}
+            UV_TAG=0.10.0
+            NODE_TAG=24
+          platforms: linux/amd64,linux/arm64
+          pull: true
