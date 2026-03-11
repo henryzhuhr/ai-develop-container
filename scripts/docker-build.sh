@@ -32,6 +32,15 @@ GO_TAG=${GO_TAG:-"1.25"}
 CLEAN_APT_CACHE=${CLEAN_APT_CACHE:-1}
 PLATFORMS=${PLATFORMS:-""}
 
+# BuildKit 日志输出模式:
+#   auto: 自动选择，交互终端通常显示为动态进度条
+#   none: 不输出构建进度
+#   plain: 纯文本日志，便于查看 RUN 步骤的标准输出
+#   quiet: 仅输出最终镜像 ID
+#   rawjson: 输出原始 JSON 事件，适合程序消费
+#   tty: 强制使用交互式 TTY 进度界面
+BUILDKIT_PROGRESS=${BUILDKIT_PROGRESS:-auto}
+
 # ============================================================
 #   镜像源配置 (本地使用国内镜像，CI 使用官方源)
 # ============================================================
@@ -88,6 +97,7 @@ BUILD_ARGS=(
 if [ -n "${PLATFORMS}" ]; then
   echo "Building for platforms: ${PLATFORMS}"
   docker buildx build --platform "${PLATFORMS}" \
+    --progress "${BUILDKIT_PROGRESS}" \
     -t "${IMAGE_NAME}:${IMAGE_TAG}" \
     -f dockerfiles/Dockerfile \
     --no-cache \
@@ -95,7 +105,8 @@ if [ -n "${PLATFORMS}" ]; then
     .
 else
   echo "Building for local platform..."
-  docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" \
+  docker build --progress "${BUILDKIT_PROGRESS}" \
+    -t "${IMAGE_NAME}:${IMAGE_TAG}" \
     -f dockerfiles/Dockerfile \
     --no-cache \
     "${BUILD_ARGS[@]}" \

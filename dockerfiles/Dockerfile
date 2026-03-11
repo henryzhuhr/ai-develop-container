@@ -10,6 +10,9 @@ FROM node:${NODE_TAG} AS node-builder
 
 FROM ubuntu:24.04
 
+WORKDIR /root
+USER root
+
 # ============================================================
 #   系统软件安装列表
 # ============================================================
@@ -62,7 +65,13 @@ ARG NPM_CONFIG_REGISTRY="https://registry.npmjs.org"
 # npm 原生识别 NPM_CONFIG_* 前缀的环境变量，无需显式调用 npm config set
 ENV NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}
 COPY --from=node-builder /usr/local/ /usr/local/
-RUN npm install -g @costrict/cs
+
+RUN set -x && \
+  # 全局安装一些常用的 AI 相关工具包
+  npm install -g \
+  @anthropic-ai/claude-code \
+  @costrict/cs \
+  @openai/codex 
 
 # ============================================================
 #   Python 环境
