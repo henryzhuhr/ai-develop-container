@@ -1,0 +1,4 @@
+interface:
+  display_name: "Docker 镜像体积排查"
+  short_description: "定位 Docker 镜像体积膨胀原因、超大层和缓存残留问题"
+  default_prompt: "使用 $docker-image-size-inspector 分析这个 Docker 镜像为什么这么大，并给出最值得先做的瘦身建议。"

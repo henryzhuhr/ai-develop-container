@@ -29,7 +29,6 @@ GO_TAG=${GO_TAG:-"1.25"}
 # ============================================================
 #   构建配置 (可通过环境变量覆盖)
 # ============================================================
-CLEAN_APT_CACHE=${CLEAN_APT_CACHE:-1}
 PLATFORMS=${PLATFORMS:-""}
 
 # BuildKit 日志输出模式:
@@ -89,7 +88,6 @@ BUILD_ARGS=(
   "--build-arg" "NODE_TAG=${NODE_TAG}"
   "--build-arg" "MIRRORS_URL=${MIRRORS_URL}"
   "--build-arg" "NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}"
-  "--build-arg" "CLEAN_APT_CACHE=${CLEAN_APT_CACHE}"
   "--build-arg" "UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}"
 )
 

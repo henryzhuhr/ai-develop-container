@@ -30,9 +30,6 @@ ARG INSTALL_LIST="$INSTALL_LIST redis-tools"
 # CI 环境不传此参数，使用官方源
 ARG MIRRORS_URL=""
 
-# 是否清理 apt 缓存
-ARG CLEAN_APT_CACHE=1
-
 # 安装软件
 ENV DEBIAN_FRONTEND=noninteractive
 RUN set -x && \
@@ -40,13 +37,12 @@ RUN set -x && \
     if [ -n "${MIRRORS_URL}" ]; then \
       sed -i -e "s#//.*archive.ubuntu.com#//${MIRRORS_URL}#g" -e "s#//ports.ubuntu.com#//${MIRRORS_URL}#g" /etc/apt/sources.list.d/ubuntu.sources; \
     fi && \
-    apt-get update && apt-get upgrade -y && \
+    apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --no-install-recommends ${INSTALL_LIST} && \
     apt-get autoremove -y && \
-    if [ $CLEAN_APT_CACHE -ne 1 ]; then { apt-get clean all; rm -rf /var/lib/apt/lists/*; } fi && \
-    localedef -i zh_CN -c -f UTF-8 -A /usr/share/locale/locale.alias zh_CN.UTF-8
-
-ENV LANG=zh_CN.utf8
+    apt-get clean all && \
+    rm -rf /var/lib/apt/lists/*
 
 # 系统时间错误可能导致: `tls: failed to verify certificate: x509: certificate signed by unknown authority`
 # 修改时区 (date -R 检查当前时间)
@@ -71,7 +67,8 @@ RUN set -x && \
   npm install -g \
   @anthropic-ai/claude-code \
   @costrict/cs \
-  @openai/codex 
+  @openai/codex && \
+  npm cache clean --force && rm -rf /root/.npm
 
 # ============================================================
 #   Python 环境
