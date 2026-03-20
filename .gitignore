@@ -1,3 +1,6 @@
+# Claude Code 项目级的配置
+.claude/settings.local.json
+
 # 环境变量文件
 .env
 
