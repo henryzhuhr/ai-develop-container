@@ -14,7 +14,7 @@ on:
       image_tag:
         description: 'Image tag'
         required: false
-        default: 'code-server-only-latest'
+        default: 'latest'
       vscode_server_commits:
         description: 'VS Code Server commits (comma-separated)'
         required: false
@@ -48,7 +48,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.image_tag }}" ]]; then
             IMAGE_TAG="${{ github.event.inputs.image_tag }}"
           else
-            IMAGE_TAG="code-server-only-latest"
+            IMAGE_TAG="latest"
           fi
           echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
@@ -66,7 +66,7 @@ jobs:
           file: ./dockerfiles/vscode-server.dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.image_tag }}
+            ghcr.io/${{ github.repository }}-code-server:${{ steps.tags.outputs.image_tag }}
           build-args: |
             VSCODE_SERVER_COMMITS=${{ github.event.inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7' }}
             VSCODE_SERVER_CHANNEL=${{ github.event.inputs.vscode_server_channel || 'stable' }}
