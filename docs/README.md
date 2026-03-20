@@ -15,15 +15,16 @@
 
 ## 入口文档
 
-- [需求总入口](./requirements.md)
-- [需求目录](./requirements/README.md)
+- [需求主文档](./requirements/README.md)
+- [需求入口](./requirements.md)
 - [开发指南](./guides/development.md)
 - [镜像体积排查](./ops/image-size-inspection.md)
 - [文档规范](./documentation-rules.md)
 
 ## 维护原则
 
-- 总入口文档只保留摘要、状态总览和跳转链接。
+- `docs/requirements/README.md` 是需求主文档。
+- `docs/requirements.md` 只是轻量入口，不承载完整需求正文。
 - 具体专题需求必须拆到 `docs/requirements/` 下。
 - 使用说明不得写入需求文档，应放到 `docs/guides/`。
 - 运维排障文档不得写入需求文档，应放到 `docs/ops/`。

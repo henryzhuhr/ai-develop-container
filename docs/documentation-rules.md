@@ -20,6 +20,10 @@
 - `docs/README.md`
 - `docs/requirements.md`
 
+需求主文档固定为：
+
+- `docs/requirements/README.md`
+
 ## 2. 命名规则
 
 - 优先使用目录分类，不再新增 `requirements.xxx.md` 这类平铺命名。
@@ -41,17 +45,27 @@
 
 ## 4. 总入口规则
 
-`docs/requirements.md` 必须始终保持为“总入口”，只允许包含：
+`docs/requirements/README.md` 必须始终保持为“需求主文档”，至少包含：
 
-- 背景摘要
+- 背景
+- 目标
+- 非目标
+- 关键约束
 - 需求总览表
 - 当前阶段范围
+- 当前状态
 - 子需求目录
-- 当前里程碑
 - 关键待决策项
+
+`docs/requirements.md` 必须始终保持为“轻量入口”，只允许包含：
+
+- 主文档链接
+- 子需求链接
+- 极少量说明文字
 
 以下内容不得长期保留在 `docs/requirements.md`：
 
+- 完整需求正文
 - 某个专题的详细技术约束
 - 长篇方案比较
 - 详细使用说明
@@ -92,10 +106,12 @@
 
 - 新增需求前，先判断是否属于已有专题。
 - 若属于已有专题，直接更新对应子文档，不要继续膨胀总入口。
+- 若属于全局需求背景、目标、约束、范围或待决策项，应更新 `docs/requirements/README.md`。
 - 若不属于已有专题，再新增新的专题文件。
 - 修改目录结构时，必须同步更新：
   - `docs/README.md`
   - `docs/requirements.md`
+  - `docs/requirements/README.md`
   - 相关交叉链接
 
 ## 9. 当前约定
@@ -109,7 +125,6 @@ docs/
   requirements.md
   requirements/
     README.md
-    core.md
     devcontainer.md
     vscode-remote.md
     verification.md
