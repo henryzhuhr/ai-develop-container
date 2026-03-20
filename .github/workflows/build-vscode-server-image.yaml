@@ -16,9 +16,9 @@ name: Build VS Code Server Image
 #   - 本镜像：仅包含 VS Code Server 二进制文件，无其他开发工具
 #
 # 镜像标签：
-#   - tag (v*):        {tag}-codeserver + codeserver-latest  [推送]
-#   - main 分支：codeserver-latest                          [推送]
-#   - 其他分支：ci-codeserver                               [仅构建验证]
+#   - tag (v*):  {tag} + latest  [推送]
+#   - main 分支：latest           [推送]
+#   - 其他分支：ci               [仅构建验证]
 #
 # 本地测试构建：
 #   IMAGE_TAG=test bash scripts/docker-build-vscode-server-ghcr.sh
@@ -70,15 +70,13 @@ jobs:
       - name: Determine image tags
         id: tags
         run: |
-          IMAGE_TAG="ci-codeserver"
+          TAGS="ci"
 
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             REF_TAG="${GITHUB_REF#refs/tags/}"
-            TAGS="${REF_TAG}-codeserver"$'\n'"codeserver-latest"
+            TAGS="${REF_TAG}"$'\n'"latest"
           elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            TAGS="codeserver-latest"
-          else
-            TAGS="ci-codeserver"
+            TAGS="latest"
           fi
 
           echo "tags<<EOF" >> "$GITHUB_OUTPUT"
