@@ -55,7 +55,7 @@ FROM ubuntu:24.04
 
 ARG VSCODE_SERVER_COMMITS
 
-COPY --from=vscode-server-builder /out/ /root/.vscode-server/bin/
+# COPY --from=vscode-server-builder /out/ /root/.vscode-server/bin/
 
 ENV VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}
 
