@@ -18,6 +18,14 @@
 - 通过本地 VS Code 的 Dev Containers / Remote Development 连接容器开发。
 - 降低新机器初始化成本和环境不一致问题。
 
+- 希望“无需再次下载”达到什么程度：
+
+  - 理想状态是用户在任何环境下都无需下载 VS Code Server 就能进入容器进行开发。
+  - 实际上，由于 VS Code Server 与客户端版本绑定，如果用户本地 VS Code 升级，而镜像中未预置对应版本，首次连接时仍可能触发下载。
+
+- 使用方式是：
+  - 例如：本地 VS Code + Dev Containers 扩展连接 Docker 容器。
+
 ## 2. 目标
 
 - 内置 Go、Java、Python 开发环境。
