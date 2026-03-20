@@ -18,7 +18,7 @@ on:
       vscode_server_commits:
         description: 'VS Code Server commits (comma-separated)'
         required: false
-        default: '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7'
+        default: '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2'
       vscode_server_channel:
         description: 'VS Code Server channel'
         required: false
@@ -68,7 +68,7 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}-code-server:${{ steps.tags.outputs.image_tag }}
           build-args: |
-            VSCODE_SERVER_COMMITS=${{ github.event.inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7' }}
+            VSCODE_SERVER_COMMITS=${{ github.event.inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2' }}
             VSCODE_SERVER_CHANNEL=${{ github.event.inputs.vscode_server_channel || 'stable' }}
           platforms: linux/amd64,linux/arm64
           pull: true
