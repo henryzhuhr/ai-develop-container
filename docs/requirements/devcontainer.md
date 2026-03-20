@@ -8,7 +8,7 @@
 
 需要明确的一点：
 
-- 本场景使用的是微软的 `VS Code Server`，不是 Coder 的 `code-server`。
+- 本场景使用的是微软的 `VS Code Server`
 - `VS Code Server` 通常与用户本地 VS Code 客户端版本或 commit 绑定。
 - 因此，“完全不下载”只有在客户端版本被严格控制时才有较高可行性；如果客户端版本不固定，仍可能发生重新下载。
 
@@ -146,7 +146,7 @@
 
 我的决策：
 
-- 目前只需要支持如下即可：
+- `DC-Q-001` and `DC-Q-002` 目前只需要支持如下即可：
 
 ```bash
 版本: 1.112.0
@@ -170,7 +170,10 @@
 
 我的决策：
 
-- 考虑 `amd64` 和 `arm64` ，但是
+- `DC-Q-004` 考虑 `amd64` 和 `arm64` ，但是实际上 `scripts/docker-build.sh` 已经区分了，因为我开发这个项目是在 M1 Mac 上的。但是使用的是在 Linux amd64 上构建的 `amd64` 镜像
+- `DC-Q-005` 第一阶段只承诺 `Docker + VS Code Dev Containers`。
+- `DC-Q-006` 工作目录继续沿用仓库名耦合路径，用户自己配置就行，不需要我们项目考虑，例如用户自己的项目里 `docker-compose.yml` 里自定义挂载
+- `DC-Q-007` 这些工具已经在 `dockerfiles/Dockerfile` 构建，先保持不变
 
 ### 10.3 远程开发体验边界
 
@@ -188,12 +191,7 @@
 
 我的决策：
 
-### 10.4 实施决策摘要
-
-- `DC-TD-001` 是否需要在第一阶段提供 `.devcontainer/` 模板。
-- `DC-TD-002` 是否需要非 `root` 用户。
-- `DC-TD-003` 默认工作目录最终如何统一。
-- `DC-TD-004` 第一阶段锁定的 VS Code 版本和 commit。
-- `DC-TD-005` 是否允许将 `VS Code Server` 制品内置到镜像。
-
-我的决策：
+- `DC-Q-008` 第一阶段要交付 `.devcontainer/` 模板。
+- `DC-Q-009` 第一阶段接受继续使用 `root` 用户。
+- `DC-Q-010` 第一阶段不预置任何 VS Code 扩展或扩展缓存。
+- `DC-Q-011` 第一阶段不允许把 `VS Code Server` 制品内置到公开镜像。
