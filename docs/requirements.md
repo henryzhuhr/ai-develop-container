@@ -1,411 +1,79 @@
-# AI 开发容器需求文档
+# AI 开发容器需求总览
 
-## 1. 背景
+本文件是需求总入口，只保留摘要、状态总览和专题跳转。详细需求请进入 `docs/requirements/` 子目录查看。
 
-本项目的目标是提供一个开箱即用的 Docker 开发容器镜像。用户拉起容器后，应能够直接进入开发状态，而不需要再手动安装语言运行时、基础开发工具或常用 AI 开发工具。
+## 1. 背景摘要
 
-该镜像主要用于本地开发场景，尤其是：
+本项目目标是提供一个开箱即用的 Docker 开发容器镜像。用户拉起容器后，应能够直接进入开发状态，而不需要再手动安装语言运行时、基础开发工具或常用 AI 开发工具。
 
-- 用户通过 Docker 运行统一的开发环境。
-- 用户通过本地 VS Code 的 Dev Containers / Remote Development 功能连接容器进行开发。
-- 团队希望减少“新机器初始化”和“环境不一致”问题。
-- 希望“无需再次下载”达到什么程度：
+当前重点场景包括：
 
-  - 理想状态是用户在任何环境下都无需下载 VS Code Server 就能进入容器进行开发。
-  - 实际上，由于 VS Code Server 与客户端版本绑定，如果用户本地 VS Code 升级，而镜像中未预置对应版本，首次连接时仍可能触发下载。
-
-- 使用方式是：
-  - 例如：本地 VS Code + Dev Containers 扩展连接 Docker 容器。
+- 通过 Docker 运行统一开发环境。
+- 通过本地 VS Code 的 Dev Containers / Remote Development 连接容器开发。
+- 降低新机器初始化成本和环境不一致问题。
 
 ## 2. 需求总览
 
-下表用于跟踪当前需求、优先级和完成状态。状态分为：
+状态分为：
 
 - `已完成`
 - `部分完成`
 - `未完成`
 
-| 需求 | 优先级 | 状态 | 说明 |
+| 需求 | 优先级 | 状态 | 详细文档 |
 |---|---|---:|---|
-| 提供统一 Docker 开发镜像 | P0 | 已完成 | 已有基础镜像、构建脚本和 compose 配置 |
-| 内置 Go 开发环境 | P0 | 已完成 | 已通过多阶段构建引入 Go |
-| 内置 Python 开发环境 | P0 | 部分完成 | 已有 `uv` 和 `python3-dev`，但仍缺少面向开发场景的完整验证 |
-| 内置 Java 开发环境 | P0 | 未完成 | 需求已明确，但当前镜像尚未安装 Java / JDK |
-| 内置 AI CLI 工具 | P0 | 已完成 | 已安装 `claude-code`、`codex`、`cs` |
-| 用户挂载项目后直接开发 | P0 | 已完成 | 当前 `docker run` 和 `docker compose` 方式均已支持 |
-| 常用基础开发工具齐全 | P1 | 部分完成 | 已有 `git`、`ssh`、`build-essential` 等，但仍缺少部分常用工具 |
-| 构建参数可配置 | P1 | 已完成 | 已支持 Go、Node、uv 与镜像源相关参数 |
-| Java 版本参数化 | P1 | 未完成 | 需在引入 Java 后补充构建参数 |
-| 文档覆盖构建与运行 | P1 | 部分完成 | `docs/development.md` 已有基础说明，但 `README.md` 仍不完整 |
-| VS Code Remote / Dev Containers 可用 | P1 | 部分完成 | 当前容器可作为远程开发目标，但还缺少模板和专项配置 |
-| 多语言冒烟验证流程 | P1 | 未完成 | 仍缺少覆盖 Go / Python / Java / AI CLI 的统一校验 |
-| VS Code Server 预置策略 | P2 | 未完成 | 需求边界已明确，但实现尚未开始 |
-| 非 root 用户支持 | P2 | 未完成 | 当前默认使用 `root` 用户 |
-| 镜像缓存清理与体积控制 | P2 | 部分完成 | 已清理 apt / npm 缓存，但增加 Java 后仍需进一步评估 |
-| Dev Container 配置模板 | P2 | 未完成 | 仓库中尚无 `.devcontainer/` 配置 |
-| 扩展预装或扩展缓存 | P3 | 未完成 | 当前未实现，且不属于第一阶段必须项 |
-| 完整离线 VS Code Server 分发 | P3 | 未完成 | 当前不在第一阶段范围内 |
-
-## 3. 产品目标
-
-### 3.1 总体目标
-
-构建一个标准化开发镜像，至少满足以下能力：
-
-- 内置 Go、Java、Python 开发环境。
-- 内置常用命令行开发工具。
-- 内置常用 AI 开发工具，例如 `claude-code`、`codex`。
-- 支持用户挂载本地项目目录后直接开始开发。
-- 尽量减少用户首次进入容器后的额外配置。
-
-### 3.2 用户体验目标
-
-用户应能够通过以下方式快速开始工作：
-
-1. 拉取或构建镜像。
-2. 挂载本地项目目录启动容器。
-3. 在容器内直接运行语言工具链、包管理器和 AI CLI。
-4. 使用本地 VS Code 连接容器进行远程开发。
-
-## 4. 目标用户
-
-本项目面向以下用户：
-
-- 需要统一开发环境的个人开发者。
-- 需要快速初始化开发机的团队成员。
-- 同时使用 Go、Java、Python 的后端或平台工程师。
-- 需要在容器内使用 AI 编程工具协助开发的用户。
-
-## 5. 使用场景
-
-### 5.1 本地命令行开发
-
-用户在本地执行 `docker run` 或 `docker compose up` 后进入容器，直接使用：
-
-- `go`
-- `python`
-- `uv`
-- `java`
-- `git`
-- `ssh`
-- `claude`
-- `codex`
-
-等工具完成开发、调试和脚本执行。
-
-### 5.2 VS Code Remote / Dev Containers 开发
-
-用户使用本地 VS Code 连接运行中的容器，在容器中完成代码编辑、命令执行和调试。
-
-本项目第一阶段的目标不是完全消除 VS Code Server 下载，而是：
-
-- 优先保证容器本身的开发依赖齐全。
-- 为后续“预置 VS Code Server”能力预留扩展空间。
-
-### 5.3 AI 辅助开发
-
-用户在容器中直接使用 AI CLI 工具辅助完成：
-
-- 代码生成
-- 代码修改
-- 调试排查
-- 文档生成
-
-## 6. 当前实现现状
-
-根据当前仓库实现，已有能力包括：
-
-- 基于 `ubuntu:24.04` 构建运行环境。
-- 通过多阶段构建引入：
-  - Node.js
-  - Go
-  - `uv`
-- 已安装基础系统工具：
-  - `git`
-  - `openssh-client`
-  - `build-essential`
-  - `vim`
-  - `nano`
-  - `tree`
-  - `python3-dev`
-  - `postgresql-client`
-  - `redis-tools`
-- 已安装 AI CLI：
-  - `@anthropic-ai/claude-code`
-  - `@costrict/cs`
-  - `@openai/codex`
-- 已支持通过构建参数配置：
-  - Go 版本
-  - Node 版本
-  - uv 版本
-  - apt 镜像源
-  - npm registry
-  - Python index
-
-当前缺失或尚未明确的能力包括：
-
-- Java 开发环境尚未安装。
-- Java 版本与发行版尚未定义。
-- 容器默认启动行为仍偏向基础运行，不是面向 Dev Container 的完整体验。
-- VS Code Remote 场景下的服务端预置策略尚未实现。
-- 常用 shell 体验、非 root 用户、开发目录规范仍未统一。
-- 针对多语言项目的验证流程尚未建立。
-
-## 7. 功能需求
-
-### 6.1 语言运行时与开发工具链
-
-镜像必须内置以下语言环境：
-
-- Go
-- Java
-- Python
-
-其中：
-
-- Go 需要支持版本参数化，延续当前实现方式。
-- Java 需要明确安装方式，建议支持版本参数化。
-- Python 需要保留 `uv` 作为主要 Python 包管理与虚拟环境工具。
-
-建议同时明确以下能力：
-
-- `go version` 可直接运行。
-- `python3 --version` 可直接运行。
-- `uv --version` 可直接运行。
-- `java -version` 可直接运行。
-- 如有 Java 编译需求，还应支持 `javac -version`。
-
-### 6.2 AI 工具
-
-镜像必须内置常用 AI CLI，并保证容器启动后可直接调用。
-
-第一阶段建议至少包含：
-
-- `claude-code`
-- `codex`
-
-当前仓库已包含的 `cs` 可保留，但需要在文档中明确其定位和使用场景。
-
-### 6.3 基础开发工具
-
-镜像必须提供常用开发与排障工具，至少包括：
-
-- `git`
-- `ssh`
-- shell 基础能力
-- 编译工具链
-- 常见文件查看与网络诊断工具
-
-当前已安装的大部分工具可以保留；如后续面向团队统一开发体验，可评估增加：
-
-- `zsh`
-- `curl`
-- `wget`
-- `zip` / `unzip`
-- `sudo`
-- `make`
-
-### 6.4 项目挂载与工作目录
-
-容器应支持用户将本地项目目录挂载到容器内，并在约定工作目录下直接开始开发。
-
-需要明确：
-
-- 默认工作目录位置。
-- 推荐挂载方式。
-- 在 `docker run` 与 `docker compose` 下的统一约定。
-
-### 6.5 远程开发支持
-
-镜像需要支持用户通过本地 VS Code 连接容器开展远程开发。
-
-第一阶段最低要求：
-
-- 容器内常用开发依赖齐全。
-- 用户进入容器后无需再手动安装 Go、Java、Python、AI CLI。
-- 文档中明确 VS Code Remote 的使用方式和当前限制。
-
-第二阶段可选能力：
-
-- 预置与特定 VS Code 版本匹配的 `VS Code Server`。
-- 提供 Dev Container 配置模板。
-- 预装常用扩展或扩展缓存。
-
-#### 6.5.1 已知约束
-
-- 本场景使用的是微软的 `VS Code Server`，不是 Coder 的 `code-server`。
-- `VS Code Server` 通常与用户本地 VS Code 客户端版本或 commit 绑定。
-- 如果用户本地 VS Code 升级，而镜像中未预置匹配版本，首次连接时仍可能重新下载 server。
-- 因此，“完全不下载远端 server”只有在客户端版本被锁定时才具备稳定可行性。
-
-#### 6.5.2 推荐默认决策
-
-如果没有额外约束，第一阶段建议按以下默认值推进：
-
-- 默认使用 VS Code `Stable` 渠道。
-- 默认锁定 1 个明确的 VS Code 版本或 commit。
-- 默认先覆盖 `amd64` 场景。
-- 默认先覆盖容器内 `root` 用户。
-- 默认允许镜像构建阶段联网下载所需制品。
-- 默认不处理浏览器版 IDE。
-- 默认不处理第三方扩展的完整离线分发。
-- 默认接受以下行为：
-  - 当本地 VS Code 版本与镜像预置版本一致时，不再下载 server。
-  - 当本地 VS Code 版本变化时，允许按需下载对应 server。
-
-#### 6.5.3 远程开发方案边界
-
-远程开发部分建议拆成两层能力：
-
-- 第一层：
-  - 保证容器内 Go、Java、Python、AI CLI 和常见开发工具齐全。
-  - 让用户连接容器后无需再安装核心开发依赖。
-- 第二层：
-  - 预置特定 commit 的 `VS Code Server`。
-  - 提供 Dev Container 配置模板。
-  - 视需要增加扩展预装或扩展缓存。
-
-### 6.6 镜像构建配置能力
-
-镜像构建过程应支持可配置性，以便适配不同网络环境和版本要求。
-
-第一阶段至少保留或支持以下配置项：
-
-- `GO_TAG`
-- `NODE_TAG`
-- `UV_TAG`
-- `MIRRORS_URL`
-- `NPM_CONFIG_REGISTRY`
-- `UV_DEFAULT_INDEX`
-
-后续如引入 Java，也应增加类似的版本配置，例如：
-
-- `JAVA_TAG`
-- 或等价的 Java 版本参数
-
-## 8. 非功能需求
-
-### 7.1 易用性
-
-- 用户不应在首次启动容器后再执行复杂环境初始化。
-- 文档应覆盖构建、启动、进入容器和基础验证命令。
-- 常用环境变量和镜像定制项应有清晰说明。
-
-### 7.2 一致性
-
-- 本地构建、CI 构建和实际运行行为应尽量一致。
-- 镜像内工具安装方式应尽量可复现。
-- 版本信息应尽量显式，而不是依赖不可控的“latest”。
-
-### 7.3 可维护性
-
-- Dockerfile 中不同语言环境的安装逻辑应分段清晰。
-- 构建参数命名应统一。
-- 文档应说明哪些组件是必须的，哪些是可选的。
-
-### 7.4 网络与镜像源适配
-
-- 项目应支持公网环境构建。
-- 项目应支持通过参数切换镜像源以适配国内网络环境。
-- 若后续需要内网或离线能力，应在当前设计中保留扩展位。
-
-### 7.5 镜像体积
-
-- 镜像应尽量避免无用缓存残留。
-- 安装完成后应清理 apt、npm 等缓存。
-- 在增加 Java 和更多工具时，需要关注体积增长并评估分层策略。
-
-## 9. 范围边界
-
-### 8.1 本期包含
-
-- 定义统一的多语言开发容器目标。
-- 完善 Go、Java、Python、AI CLI 的基础环境能力。
-- 规范构建参数和运行方式。
-- 完善文档和基础验证流程。
-
-### 8.2 本期暂不包含
+| 提供统一 Docker 开发镜像 | P0 | 已完成 | [core](./requirements/core.md) |
+| 内置 Go 开发环境 | P0 | 已完成 | [core](./requirements/core.md) |
+| 内置 Python 开发环境 | P0 | 部分完成 | [core](./requirements/core.md) |
+| 内置 Java 开发环境 | P0 | 未完成 | [core](./requirements/core.md) |
+| 内置 AI CLI 工具 | P0 | 已完成 | [core](./requirements/core.md) |
+| 用户挂载项目后直接开发 | P0 | 已完成 | [core](./requirements/core.md) |
+| 常用基础开发工具齐全 | P1 | 部分完成 | [core](./requirements/core.md) |
+| 构建参数可配置 | P1 | 已完成 | [core](./requirements/core.md) |
+| Java 版本参数化 | P1 | 未完成 | [core](./requirements/core.md) |
+| 文档覆盖构建与运行 | P1 | 部分完成 | [guides](./guides/development.md) |
+| VS Code Remote / Dev Containers 可用 | P1 | 部分完成 | [devcontainer](./requirements/devcontainer.md) |
+| 多语言冒烟验证流程 | P1 | 未完成 | [verification](./requirements/verification.md) |
+| VS Code Server 预置策略 | P2 | 未完成 | [vscode-remote](./requirements/vscode-remote.md) |
+| 非 root 用户支持 | P2 | 未完成 | [devcontainer](./requirements/devcontainer.md) |
+| 镜像缓存清理与体积控制 | P2 | 部分完成 | [ops](./ops/image-size-inspection.md) |
+| Dev Container 配置模板 | P2 | 未完成 | [devcontainer](./requirements/devcontainer.md) |
+| 扩展预装或扩展缓存 | P3 | 未完成 | [vscode-remote](./requirements/vscode-remote.md) |
+| 完整离线 VS Code Server 分发 | P3 | 未完成 | [vscode-remote](./requirements/vscode-remote.md) |
+
+## 3. 当前阶段范围
+
+第一阶段重点：
+
+- 补齐 Go、Java、Python 三套开发环境。
+- 保证 AI CLI 开箱即用。
+- 完善构建与运行方式说明。
+- 建立基础验证流程。
+
+第一阶段暂不包含：
 
 - 浏览器版 IDE。
-- 完整的 VS Code Server 离线分发体系。
-- 所有 VS Code 扩展的预装和离线缓存。
-- 全量 CI 测试矩阵。
-- 面向所有架构和所有操作系统的完全适配承诺。
+- 完整离线 VS Code Server 分发体系。
+- 全量 VS Code 扩展预装与缓存。
 
-## 10. 建议的第一阶段实现项
+## 4. 子需求目录
 
-基于当前仓库，我建议第一阶段至少落地以下内容：
+- [核心需求](./requirements/core.md)
+- [Dev Container 需求](./requirements/devcontainer.md)
+- [VS Code Remote 需求](./requirements/vscode-remote.md)
+- [验证与验收需求](./requirements/verification.md)
 
-1. 在 Dockerfile 中补充 Java 开发环境安装。
-2. 为 Java 安装增加可配置版本参数。
-3. 明确容器的默认工作目录和推荐挂载方式。
-4. 更新 README 与 `docs/`，说明多语言能力和使用方法。
-5. 补充基础冒烟验证命令，至少覆盖：
-   - `node -v`
-   - `go version`
-   - `python3 --version`
-   - `uv --version`
-   - `java -version`
-   - `claude --version` 或等价检查方式
-   - `codex --version` 或等价检查方式
-6. 评估是否需要增加 Dev Container 配置文件。
+## 5. 当前里程碑
 
-## 11. 验收标准
+- 已完成基础镜像骨架、Go、uv、AI CLI 和基础构建脚本。
+- 下一阶段优先补齐 Java、验证流程和 Dev Container 支持。
 
-以下标准可作为第一阶段验收基线：
+## 6. 待决策项
 
-- 能成功执行 `bash scripts/docker-build.sh` 并构建镜像。
-- 容器启动后可直接运行 Go、Java、Python、uv。
-- 容器启动后可直接运行至少一个主要 AI CLI。
-- 用户挂载项目目录后可在容器中直接进行多语言开发。
-- 文档能够指导用户完成构建、启动、进入容器和基础验证。
-- 当前已知限制会在文档中明确说明。
-
-## 12. 待确认决策
-
-以下事项需要在实现前或实现过程中确认：
-
-- Java 采用哪个发行版：
-  - OpenJDK
-  - Temurin
-  - 其他发行版
-- Java 默认版本：
-  - 17
-  - 21
-  - 或其他版本
-- 是否需要 Maven 或 Gradle：
-  - 若目标是完整 Java 项目开发，通常需要至少一个构建工具
-- 是否需要非 root 用户：
-  - 若未来重点支持 Dev Containers，通常值得补
-- 是否需要提供 `.devcontainer/` 模板：
-  - 若面向 VS Code 用户，建议后续补齐
-- 是否要锁定 AI CLI 版本：
-  - 当前 npm 全局安装默认会受包版本更新影响
-- 是否锁定本地 VS Code 版本：
-  - 若要尽量避免重复下载 `VS Code Server`，建议锁定
-- VS Code 目标渠道与版本：
-  - 建议第一阶段限定为 `Stable`
-- 是否允许把 `VS Code Server` 制品内置到镜像：
-  - 需要结合许可、发布方式和供应链要求确认
-- 网络要求：
-  - 公网、代理、内网、完全离线
-- 是否需要扩展预装或扩展缓存：
-  - 第一阶段建议不做，除非有明确列表
-
-## 13. 结论
-
-本项目应从“基础开发镜像”升级为“统一的多语言 AI 开发容器镜像”。
-
-第一阶段的重点不是追求所有远程开发细节一次性完善，而是先把以下基础能力做实：
-
-- Go、Java、Python 三套开发环境齐备。
-- AI CLI 开箱即用。
-- 构建与运行方式清晰。
-- 文档可指导用户直接上手。
-
-在此基础上，再逐步补充：
-
-- VS Code Remote 体验优化
-- Dev Container 模板
-- 非 root 用户支持
-- VS Code Server 预置或缓存策略
+- Java 发行版与默认版本。
+- 是否需要 Maven 或 Gradle。
+- 是否需要非 root 用户。
+- 是否需要 `.devcontainer/` 模板。
+- 是否锁定 AI CLI 版本。
+- 是否锁定本地 VS Code 版本与渠道。
+- 是否允许将 `VS Code Server` 制品内置到镜像。

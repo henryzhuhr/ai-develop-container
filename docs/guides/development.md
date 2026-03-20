@@ -2,7 +2,7 @@
 
 ## CI 文档
 
-- [Build and Push Image 流水线维护说明](./workflows/build-and-push-image.md)
+- [Build and Push Image 流水线维护说明](../workflows/build-and-push-image.md)
 
 ## 构建镜像
 
