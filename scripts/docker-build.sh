@@ -25,6 +25,10 @@ IMAGE_TAG=${IMAGE_TAG:-"0.0.1-dev"}
 UV_TAG=${UV_TAG:-"0.10.0"}
 NODE_TAG=${NODE_TAG:-"24"}
 GO_TAG=${GO_TAG:-"1.25"}
+JAVA_VERSION=${JAVA_VERSION:-"21"}
+VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION:-"1.112.0"}
+VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT:-"07ff9d6178ede9a1bd12ad3399074d726ebe6e43"}
+VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL:-"stable"}
 
 # ============================================================
 #   构建配置 (可通过环境变量覆盖)
@@ -85,7 +89,11 @@ BUILD_ARGS=(
   "--build-arg" "UV_TAG=${UV_TAG}"
   "--build-arg" "GHCR_MIRROR=${GHCR_MIRROR}"
   "--build-arg" "GO_TAG=${GO_TAG}"
+  "--build-arg" "JAVA_VERSION=${JAVA_VERSION}"
   "--build-arg" "NODE_TAG=${NODE_TAG}"
+  "--build-arg" "VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION}"
+  "--build-arg" "VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT}"
+  "--build-arg" "VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}"
   "--build-arg" "MIRRORS_URL=${MIRRORS_URL}"
   "--build-arg" "NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}"
   "--build-arg" "UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}"

@@ -3,10 +3,52 @@ ARG UV_TAG=latest
 ARG GO_TAG=latest
 ARG NODE_TAG=latest
 ARG GHCR_MIRROR="ghcr.io"
+ARG VSCODE_SERVER_VERSION="1.112.0"
+ARG VSCODE_SERVER_COMMIT="07ff9d6178ede9a1bd12ad3399074d726ebe6e43"
+ARG VSCODE_SERVER_CHANNEL="stable"
 
 FROM ${GHCR_MIRROR}/astral-sh/uv:${UV_TAG} AS uv-builder
 FROM golang:${GO_TAG} AS golang-builder
 FROM node:${NODE_TAG} AS node-builder
+FROM ubuntu:24.04 AS vscode-server-builder
+
+ARG VSCODE_SERVER_COMMIT
+ARG VSCODE_SERVER_CHANNEL
+ARG TARGETARCH
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl tar && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    arch="${TARGETARCH:-}"; \
+    if [ -z "${arch}" ]; then \
+      case "$(uname -m)" in \
+        x86_64) arch="amd64" ;; \
+        aarch64|arm64) arch="arm64" ;; \
+        *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;; \
+      esac; \
+    fi; \
+    case "${arch}" in \
+      amd64) vscode_arch="x64" ;; \
+      arm64) vscode_arch="arm64" ;; \
+      *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
+    esac; \
+    target_dir="/out/${VSCODE_SERVER_COMMIT}"; \
+    extract_dir="/tmp/vscode-server-extract"; \
+    mkdir -p "${target_dir}" "${extract_dir}"; \
+    curl -fsSL "https://update.code.visualstudio.com/commit:${VSCODE_SERVER_COMMIT}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" -o /tmp/vscode-server.tar.gz; \
+    tar -xzf /tmp/vscode-server.tar.gz -C "${extract_dir}"; \
+    entry_count="$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"; \
+    if [ "${entry_count}" = "1" ] && [ -d "$(find "${extract_dir}" -mindepth 1 -maxdepth 1)" ]; then \
+      top_dir="$(find "${extract_dir}" -mindepth 1 -maxdepth 1)"; \
+      cp -a "${top_dir}/." "${target_dir}/"; \
+    else \
+      cp -a "${extract_dir}/." "${target_dir}/"; \
+    fi; \
+    touch "${target_dir}/0"; \
+    rm -rf /tmp/vscode-server.tar.gz "${extract_dir}"
 
 FROM ubuntu:24.04
 
@@ -16,6 +58,7 @@ USER root
 # ============================================================
 #   系统软件安装列表
 # ============================================================
+ARG JAVA_VERSION="21"
 ARG INSTALL_LIST=""
 # ARG INSTALL_LIST="$INSTALL_LIST ubuntu-server"
 ARG INSTALL_LIST="$INSTALL_LIST ca-certificates locales"
@@ -23,6 +66,7 @@ ARG INSTALL_LIST="$INSTALL_LIST vim nano tree pciutils iputils-ping"
 ARG INSTALL_LIST="$INSTALL_LIST git openssh-client"
 ARG INSTALL_LIST="$INSTALL_LIST build-essential"
 ARG INSTALL_LIST="$INSTALL_LIST python3-dev"
+ARG INSTALL_LIST="$INSTALL_LIST openjdk-${JAVA_VERSION}-jdk-headless"
 ARG INSTALL_LIST="$INSTALL_LIST postgresql-client"
 ARG INSTALL_LIST="$INSTALL_LIST redis-tools"
 
@@ -53,6 +97,13 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 ARG USER_NAME="root"
 ARG USER_HOME="/${USER_NAME}"
+ARG VSCODE_SERVER_VERSION
+ARG VSCODE_SERVER_COMMIT
+ARG VSCODE_SERVER_CHANNEL
+
+ENV VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION}
+ENV VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT}
+ENV VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}
 
 # ============================================================
 #   Node.js 环境
@@ -86,3 +137,8 @@ ENV UV_DEFAULT_INDEX=${UV_DEFAULT_INDEX}
 COPY --from=golang-builder /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:$PATH"
 ENV PATH="$USER_HOME/go/bin:$PATH"
+
+# ============================================================
+#   VS Code Server 环境
+# ============================================================
+COPY --from=vscode-server-builder /out/${VSCODE_SERVER_COMMIT} /root/.vscode-server/bin/${VSCODE_SERVER_COMMIT}

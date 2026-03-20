@@ -1,0 +1,21 @@
+{
+  "name": "ai-develop-container",
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "ai-develop-container",
+  "workspaceFolder": "/root/ai-develop-container",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      },
+      "extensions": [
+        "golang.go",
+        "ms-python.python",
+        "redhat.java"
+      ]
+    }
+  }
+}

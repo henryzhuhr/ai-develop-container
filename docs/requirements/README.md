@@ -60,20 +60,20 @@
 | --- | --- | --- | --- | --- |
 | R-001 | 提供统一 Docker 开发镜像 | P0 | 已完成 | 本文档 |
 | R-002 | 内置 Go 开发环境 | P0 | 已完成 | 本文档 |
-| R-003 | 内置 Python 开发环境 | P0 | 部分完成 | 本文档 |
-| R-004 | 内置 Java 开发环境 | P0 | 未完成 | 本文档 |
+| R-003 | 内置 Python 开发环境 | P0 | 已完成 | 本文档 |
+| R-004 | 内置 Java 开发环境 | P0 | 已完成 | 本文档 |
 | R-005 | 内置 AI CLI 工具 | P0 | 已完成 | 本文档 |
 | R-006 | 用户挂载项目后直接开发 | P0 | 已完成 | 本文档 |
 | R-007 | 常用基础开发工具齐全 | P1 | 部分完成 | 本文档 |
 | R-008 | 构建参数可配置 | P1 | 已完成 | 本文档 |
-| R-009 | Java 版本参数化 | P1 | 未完成 | 本文档 |
+| R-009 | Java 版本参数化 | P1 | 已完成 | 本文档 |
 | R-010 | 文档覆盖构建与运行 | P1 | 部分完成 | [开发指南](../guides/development.md) |
-| R-011 | VS Code Remote / Dev Containers 可用 | P1 | 部分完成 | [Dev Container 子需求](./devcontainer.md) |
-| R-012 | 多语言冒烟验证流程 | P1 | 未完成 | [验证与验收子需求](./verification.md) |
-| R-013 | VS Code Server 预置策略 | P2 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
+| R-011 | VS Code Remote / Dev Containers 可用 | P1 | 已完成 | [Dev Container 子需求](./devcontainer.md) |
+| R-012 | 多语言冒烟验证流程 | P1 | 已完成 | [验证与验收子需求](./verification.md) |
+| R-013 | VS Code Server 预置策略 | P2 | 已完成 | [VS Code Remote 子需求](./vscode-remote.md) |
 | R-014 | 非 root 用户支持 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
 | R-015 | 镜像缓存清理与体积控制 | P2 | 部分完成 | [镜像体积排查](../ops/image-size-inspection.md) |
-| R-016 | Dev Container 配置模板 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
+| R-016 | Dev Container 配置模板 | P2 | 已完成 | [Dev Container 子需求](./devcontainer.md) |
 | R-017 | 扩展预装或扩展缓存 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
 | R-018 | 完整离线 VS Code Server 分发 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
 
@@ -136,12 +136,12 @@
 
 - 基础镜像骨架：已完成。
 - Go：已完成。
-- Python / uv：部分完成。
-- Java：未完成。
+- Python / uv：已完成。
+- Java：已完成。
 - AI CLI：已完成。
-- Dev Container 支持：部分完成。
-- VS Code Server 预置：未完成。
-- 多语言验证：未完成。
+- Dev Container 支持：已完成。
+- VS Code Server 预置：已完成。
+- 多语言验证：已完成。
 
 ## 9. 子需求拆分
 

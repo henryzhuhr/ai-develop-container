@@ -18,6 +18,16 @@ bash scripts/docker-build.sh
 GO_TAG=1.22 IMAGE_TAG=test bash scripts/docker-build.sh
 ```
 
+### 指定 Java 与 VS Code Server 版本构建
+
+```bash
+JAVA_VERSION=21 \
+VSCODE_SERVER_VERSION=1.112.0 \
+VSCODE_SERVER_COMMIT=07ff9d6178ede9a1bd12ad3399074d726ebe6e43 \
+IMAGE_TAG=test \
+bash scripts/docker-build.sh
+```
+
 ### 手动使用 docker build 构建
 
 ```bash
@@ -35,6 +45,12 @@ docker build -t ai-develop-container:0.0.1-dev -f dockerfiles/Dockerfile .
 
 ```bash
 docker images ai-develop-container:0.0.1-dev
+```
+
+### 构建后验证
+
+```bash
+bash scripts/verify-image.sh ai-develop-container:0.0.1-dev
 ```
 
 ## 容器操作
