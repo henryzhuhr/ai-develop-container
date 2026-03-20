@@ -22,8 +22,8 @@ GO_TAG=1.22 IMAGE_TAG=test bash scripts/docker-build.sh
 
 ```bash
 JAVA_VERSION=21 \
-VSCODE_SERVER_VERSION=1.112.0 \
-VSCODE_SERVER_COMMIT=07ff9d6178ede9a1bd12ad3399074d726ebe6e43 \
+VSCODE_SERVER_COMMITS=07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7 \
+VSCODE_SERVER_CHANNEL=stable \
 IMAGE_TAG=test \
 bash scripts/docker-build.sh
 ```
@@ -51,6 +51,12 @@ docker images ai-develop-container:0.0.1-dev
 
 ```bash
 bash scripts/verify-image.sh ai-develop-container:0.0.1-dev
+```
+
+如果只想检查预置的微软 `VS Code Server` commit 目录：
+
+```bash
+docker run --rm ai-develop-container:0.0.1-dev bash -lc 'ls -1 /root/.vscode-server/bin'
 ```
 
 ## 容器操作

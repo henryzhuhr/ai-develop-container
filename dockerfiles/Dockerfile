@@ -40,7 +40,11 @@ RUN set -eux; \
       target_dir="/out/${commit}"; \
       extract_dir="/tmp/vscode-server-extract-${commit}"; \
       mkdir -p "${target_dir}" "${extract_dir}"; \
-      curl -fsSL "https://update.code.visualstudio.com/commit:${commit}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" -o "/tmp/vscode-server-${commit}.tar.gz"; \
+      curl --fail --show-error --silent --location \
+        --retry 5 --retry-all-errors --retry-delay 2 \
+        --connect-timeout 10 --max-time 300 \
+        "https://update.code.visualstudio.com/commit:${commit}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" \
+        -o "/tmp/vscode-server-${commit}.tar.gz"; \
       tar -xzf "/tmp/vscode-server-${commit}.tar.gz" -C "${extract_dir}"; \
       entry_count="$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"; \
       if [ "${entry_count}" = "1" ] && [ -d "$(find "${extract_dir}" -mindepth 1 -maxdepth 1)" ]; then \

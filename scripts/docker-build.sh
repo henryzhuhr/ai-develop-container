@@ -17,7 +17,7 @@ ENABLE_GLOBAL_MIRROR=${ENABLE_GLOBAL_MIRROR:-0}
 #   构建的镜像配置 (可通过环境变量覆盖)
 # ============================================================
 IMAGE_NAME=${IMAGE_NAME:-"ai-develop-container"}
-IMAGE_TAG=${IMAGE_TAG:-"latest"}
+IMAGE_TAG=${IMAGE_TAG:-"0.0.1-dev"}
 
 # ============================================================
 #   基础镜像版本配置 (可通过环境变量覆盖)
