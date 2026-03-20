@@ -8,12 +8,13 @@ on:
   push:
     branches:
       - dev
+      - feature/vscode-server-action
   workflow_dispatch:
     inputs:
       image_tag:
         description: 'Image tag'
         required: false
-        default: 'codeserveronly-latest'
+        default: 'code-server-only-latest'
       vscode_server_commits:
         description: 'VS Code Server commits (comma-separated)'
         required: false
@@ -48,7 +49,7 @@ jobs:
           if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.image_tag }}" ]]; then
             IMAGE_TAG="${{ github.event.inputs.image_tag }}"
           else
-            IMAGE_TAG="codeserveronly-latest"
+            IMAGE_TAG="code-server-only-latest"
           fi
           echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
