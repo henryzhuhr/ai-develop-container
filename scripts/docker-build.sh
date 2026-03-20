@@ -17,7 +17,7 @@ ENABLE_GLOBAL_MIRROR=${ENABLE_GLOBAL_MIRROR:-0}
 #   构建的镜像配置 (可通过环境变量覆盖)
 # ============================================================
 IMAGE_NAME=${IMAGE_NAME:-"ai-develop-container"}
-IMAGE_TAG=${IMAGE_TAG:-"0.0.1-dev"}
+IMAGE_TAG=${IMAGE_TAG:-"latest"}
 
 # ============================================================
 #   基础镜像版本配置 (可通过环境变量覆盖)
@@ -26,8 +26,7 @@ UV_TAG=${UV_TAG:-"0.10.0"}
 NODE_TAG=${NODE_TAG:-"24"}
 GO_TAG=${GO_TAG:-"1.25"}
 JAVA_VERSION=${JAVA_VERSION:-"21"}
-VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION:-"1.112.0"}
-VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT:-"07ff9d6178ede9a1bd12ad3399074d726ebe6e43"}
+VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS:-"07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7"}
 VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL:-"stable"}
 
 # ============================================================
@@ -91,8 +90,7 @@ BUILD_ARGS=(
   "--build-arg" "GO_TAG=${GO_TAG}"
   "--build-arg" "JAVA_VERSION=${JAVA_VERSION}"
   "--build-arg" "NODE_TAG=${NODE_TAG}"
-  "--build-arg" "VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION}"
-  "--build-arg" "VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT}"
+  "--build-arg" "VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}"
   "--build-arg" "VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}"
   "--build-arg" "MIRRORS_URL=${MIRRORS_URL}"
   "--build-arg" "NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY}"
@@ -119,9 +117,6 @@ else
     .
 fi
 
-# ============================================================
-#   打印构建结果
-# ============================================================
 echo ""
 echo "Built images:"
 docker images --format "table {{.Repository}}:{{.Tag}}\t{{.Size}}\t{{.CreatedSince}}" | grep "${IMAGE_NAME}" || true

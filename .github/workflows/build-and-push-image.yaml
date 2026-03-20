@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go_version:
+        go_version: # 构建的 Go 版本列表，后续可以根据需要调整
           - "1.20"
           - "1.21"
           - "1.22"

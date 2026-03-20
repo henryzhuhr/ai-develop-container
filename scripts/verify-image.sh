@@ -3,11 +3,13 @@
 set -euo pipefail
 
 IMAGE_NAME=${1:-"ai-develop-container:0.0.1-dev"}
-VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT:-"07ff9d6178ede9a1bd12ad3399074d726ebe6e43"}
+VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS:-"07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7"}
 
 echo "Verifying image: ${IMAGE_NAME}"
 
-docker run --rm "${IMAGE_NAME}" bash -lc "
+docker run --rm \
+  -e VSCODE_SERVER_COMMITS="${VSCODE_SERVER_COMMITS}" \
+  "${IMAGE_NAME}" bash -lc "
   set -euo pipefail
   node -v
   go version
@@ -24,8 +26,10 @@ docker run --rm "${IMAGE_NAME}" bash -lc "
     echo 'claude command not found' >&2
     exit 1
   fi
-  test -d /root/.vscode-server/bin/${VSCODE_SERVER_COMMIT}
-  test -f /root/.vscode-server/bin/${VSCODE_SERVER_COMMIT}/0
-  test -x /root/.vscode-server/bin/${VSCODE_SERVER_COMMIT}/bin/code-server
-  echo \"VS Code Server commit ${VSCODE_SERVER_COMMIT} is preinstalled.\"
+  for commit in \${VSCODE_SERVER_COMMITS//,/ }; do
+    test -d /root/.vscode-server/bin/\${commit}
+    test -f /root/.vscode-server/bin/\${commit}/0
+    test -x /root/.vscode-server/bin/\${commit}/bin/code-server
+    echo \"VS Code Server commit \${commit} is preinstalled.\"
+  done
 "

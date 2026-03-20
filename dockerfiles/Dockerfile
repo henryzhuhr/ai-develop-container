@@ -3,8 +3,7 @@ ARG UV_TAG=latest
 ARG GO_TAG=latest
 ARG NODE_TAG=latest
 ARG GHCR_MIRROR="ghcr.io"
-ARG VSCODE_SERVER_VERSION="1.112.0"
-ARG VSCODE_SERVER_COMMIT="07ff9d6178ede9a1bd12ad3399074d726ebe6e43"
+ARG VSCODE_SERVER_COMMITS="07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7"
 ARG VSCODE_SERVER_CHANNEL="stable"
 
 FROM ${GHCR_MIRROR}/astral-sh/uv:${UV_TAG} AS uv-builder
@@ -12,7 +11,7 @@ FROM golang:${GO_TAG} AS golang-builder
 FROM node:${NODE_TAG} AS node-builder
 FROM ubuntu:24.04 AS vscode-server-builder
 
-ARG VSCODE_SERVER_COMMIT
+ARG VSCODE_SERVER_COMMITS
 ARG VSCODE_SERVER_CHANNEL
 ARG TARGETARCH
 
@@ -35,20 +34,25 @@ RUN set -eux; \
       arm64) vscode_arch="arm64" ;; \
       *) echo "Unsupported TARGETARCH: ${arch}" >&2; exit 1 ;; \
     esac; \
-    target_dir="/out/${VSCODE_SERVER_COMMIT}"; \
-    extract_dir="/tmp/vscode-server-extract"; \
-    mkdir -p "${target_dir}" "${extract_dir}"; \
-    curl -fsSL "https://update.code.visualstudio.com/commit:${VSCODE_SERVER_COMMIT}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" -o /tmp/vscode-server.tar.gz; \
-    tar -xzf /tmp/vscode-server.tar.gz -C "${extract_dir}"; \
-    entry_count="$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"; \
-    if [ "${entry_count}" = "1" ] && [ -d "$(find "${extract_dir}" -mindepth 1 -maxdepth 1)" ]; then \
-      top_dir="$(find "${extract_dir}" -mindepth 1 -maxdepth 1)"; \
-      cp -a "${top_dir}/." "${target_dir}/"; \
-    else \
-      cp -a "${extract_dir}/." "${target_dir}/"; \
-    fi; \
-    touch "${target_dir}/0"; \
-    rm -rf /tmp/vscode-server.tar.gz "${extract_dir}"
+    old_ifs="$IFS"; \
+    IFS=','; \
+    for commit in ${VSCODE_SERVER_COMMITS}; do \
+      target_dir="/out/${commit}"; \
+      extract_dir="/tmp/vscode-server-extract-${commit}"; \
+      mkdir -p "${target_dir}" "${extract_dir}"; \
+      curl -fsSL "https://update.code.visualstudio.com/commit:${commit}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" -o "/tmp/vscode-server-${commit}.tar.gz"; \
+      tar -xzf "/tmp/vscode-server-${commit}.tar.gz" -C "${extract_dir}"; \
+      entry_count="$(find "${extract_dir}" -mindepth 1 -maxdepth 1 | wc -l | tr -d ' ')"; \
+      if [ "${entry_count}" = "1" ] && [ -d "$(find "${extract_dir}" -mindepth 1 -maxdepth 1)" ]; then \
+        top_dir="$(find "${extract_dir}" -mindepth 1 -maxdepth 1)"; \
+        cp -a "${top_dir}/." "${target_dir}/"; \
+      else \
+        cp -a "${extract_dir}/." "${target_dir}/"; \
+      fi; \
+      touch "${target_dir}/0"; \
+      rm -rf "/tmp/vscode-server-${commit}.tar.gz" "${extract_dir}"; \
+    done; \
+    IFS="$old_ifs"
 
 FROM ubuntu:24.04
 
@@ -97,12 +101,10 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 ARG USER_NAME="root"
 ARG USER_HOME="/${USER_NAME}"
-ARG VSCODE_SERVER_VERSION
-ARG VSCODE_SERVER_COMMIT
+ARG VSCODE_SERVER_COMMITS
 ARG VSCODE_SERVER_CHANNEL
 
-ENV VSCODE_SERVER_VERSION=${VSCODE_SERVER_VERSION}
-ENV VSCODE_SERVER_COMMIT=${VSCODE_SERVER_COMMIT}
+ENV VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}
 ENV VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}
 
 # ============================================================
@@ -141,4 +143,4 @@ ENV PATH="$USER_HOME/go/bin:$PATH"
 # ============================================================
 #   VS Code Server 环境
 # ============================================================
-COPY --from=vscode-server-builder /out/${VSCODE_SERVER_COMMIT} /root/.vscode-server/bin/${VSCODE_SERVER_COMMIT}
+COPY --from=vscode-server-builder /out/ /root/.vscode-server/bin/
