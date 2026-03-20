@@ -1,0 +1,67 @@
+name: Build VS Code Server Image
+
+# 本地测试构建：
+#   IMAGE_TAG=test bash scripts/docker-build-vscode-server-ghcr.sh
+#   docker images | grep ai-develop-container
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag'
+        required: false
+        default: 'codeserveronly-latest'
+      vscode_server_commits:
+        description: 'VS Code Server commits (comma-separated)'
+        required: false
+        default: '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7'
+      vscode_server_channel:
+        description: 'VS Code Server channel'
+        required: false
+        default: 'stable'
+
+jobs:
+  build-vscode-server:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Determine image tags
+        id: tags
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" && -n "${{ github.event.inputs.image_tag }}" ]]; then
+            IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+          else
+            IMAGE_TAG="codeserveronly-latest"
+          fi
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push vscode-server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./dockerfiles/vscode-server.dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.tags.outputs.image_tag }}
+          build-args: |
+            VSCODE_SERVER_COMMITS=${{ github.event.inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7' }}
+            VSCODE_SERVER_CHANNEL=${{ github.event.inputs.vscode_server_channel || 'stable' }}
+          platforms: linux/amd64,linux/arm64
+          pull: true
