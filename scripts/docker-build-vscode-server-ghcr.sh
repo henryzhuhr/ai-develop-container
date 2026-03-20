@@ -6,13 +6,11 @@
 #
 # 依赖：
 #   - Docker (支持 BuildKit)
-#   - Git (用于推导仓库信息)
 #   - GITHUB_TOKEN (GHCR 认证)
 #
 # 环境变量：
 #   GITHUB_TOKEN        GHCR 认证令牌（必需）
-#   GITHUB_USERNAME     GHCR 用户名（可选，默认为仓库所有者）
-#   GHCR_IMAGE_NAME     镜像名称（可选，默认为 <repo-name>-vscode-server）
+#   GITHUB_USERNAME     GHCR 用户名（可选，默认为 henryzhuhr）
 #   IMAGE_TAG           镜像标签（可选，默认为 latest）
 #   VSCODE_SERVER_COMMITS 要预置的 VS Code Server commit 列表，逗号分隔
 #   VSCODE_SERVER_CHANNEL 下载通道（可选，默认为 stable）
@@ -36,8 +34,8 @@ set -euo pipefail
 # 基础配置
 # =============================================================================
 
-# 仓库根目录
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# 项目根目录（固定路径）
+PROJECT_ROOT="/Users/henryzhuhr/project/ai-develop-container"
 
 # Dockerfile 路径（vscode-server 专用）
 DOCKERFILE_PATH="${DOCKERFILE_PATH:-dockerfiles/vscode-server.dockerfile}"
@@ -64,30 +62,12 @@ if [ -z "${GITHUB_TOKEN:-}" ]; then
   exit 1
 fi
 
-# 从 Git 远程仓库推导仓库信息
-origin_url="$(git -C "${ROOT_DIR}" remote get-url origin)"
-case "${origin_url}" in
-  git@github.com:*)
-    repo_path="${origin_url#git@github.com:}"
-    ;;
-  https://github.com/*)
-    repo_path="${origin_url#https://github.com/}"
-    ;;
-  *)
-    echo "Unsupported origin remote: ${origin_url}" >&2
-    exit 1
-    ;;
-esac
-
-repo_path="${repo_path%.git}"
-repo_owner="${repo_path%%/*}"
-repo_name="${repo_path##*/}"
-
-# GHCR 用户名和镜像名
-GITHUB_USERNAME="${GITHUB_USERNAME:-${repo_owner}}"
-GHCR_IMAGE_NAME="${GHCR_IMAGE_NAME:-${repo_name}-vscode-server}"
-GHCR_IMAGE="ghcr.io/${repo_owner}/${GHCR_IMAGE_NAME}:${IMAGE_TAG}"
-LOCAL_IMAGE="${GHCR_IMAGE_NAME}:${IMAGE_TAG}"
+# GHCR 配置
+GITHUB_USERNAME="${GITHUB_USERNAME:-henryzhuhr}"
+GHCR_IMAGE_NAME="${GHCR_IMAGE_NAME:-ai-develop-container}"
+GHCR_IMAGE_TAG="${GHCR_IMAGE_TAG:-vscode-server-latest}"
+GHCR_IMAGE="ghcr.io/${GITHUB_USERNAME}/${GHCR_IMAGE_NAME}:${GHCR_IMAGE_TAG}"
+LOCAL_IMAGE="${GHCR_IMAGE_NAME}:${GHCR_IMAGE_TAG}"
 
 # 登录 GHCR
 echo "Logging in to ghcr.io as ${GITHUB_USERNAME}"
@@ -101,22 +81,15 @@ fi
 # =============================================================================
 
 echo "Building ${LOCAL_IMAGE} from ${DOCKERFILE_PATH}"
-build_cmd=(
-  docker build
-  --progress "${BUILDKIT_PROGRESS}"
-  -t "${LOCAL_IMAGE}"
-  -t "${GHCR_IMAGE}"
-  -f "${DOCKERFILE_PATH}"
-  --build-arg "VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}"
-  --build-arg "VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}"
-)
-
-if [ -n "${PLATFORM}" ]; then
-  build_cmd+=(--platform "${PLATFORM}")
-fi
-
-build_cmd+=("${ROOT_DIR}")
-"${build_cmd[@]}"
+docker build \
+  --progress "${BUILDKIT_PROGRESS}" \
+  -t "${LOCAL_IMAGE}" \
+  -t "${GHCR_IMAGE}" \
+  -f "${DOCKERFILE_PATH}" \
+  --build-arg "VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}" \
+  --build-arg "VSCODE_SERVER_CHANNEL=${VSCODE_SERVER_CHANNEL}" \
+  ${PLATFORM:+--platform "${PLATFORM}"} \
+  "${PROJECT_ROOT}"
 
 # =============================================================================
 # 推送到 GHCR
