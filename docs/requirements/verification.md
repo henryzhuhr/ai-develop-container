@@ -21,23 +21,22 @@
 
 ### 4.1 构建验证
 
-- 至少应验证 `bash scripts/docker-build.sh` 可成功执行。
+- `VF-001` 至少应验证 `bash scripts/docker-build.sh` 可成功执行。
 
 ### 4.2 冒烟验证
 
-- 至少覆盖以下命令：
-  - `node -v`
-  - `go version`
-  - `python3 --version`
-  - `uv --version`
-  - `java -version`
-  - `javac -version`
-  - `claude --version` 或等价检查方式
-  - `codex --version` 或等价检查方式
+- `VF-002` 至少覆盖 `node -v`。
+- `VF-003` 至少覆盖 `go version`。
+- `VF-004` 至少覆盖 `python3 --version`。
+- `VF-005` 至少覆盖 `uv --version`。
+- `VF-006` 至少覆盖 `java -version`。
+- `VF-007` 至少覆盖 `javac -version`。
+- `VF-008` 至少覆盖 `claude --version` 或等价检查方式。
+- `VF-009` 至少覆盖 `codex --version` 或等价检查方式。
 
 ### 4.3 运行验证
 
-- 应验证容器启动后挂载项目目录和工作目录行为正常。
+- `VF-010` 应验证容器启动后挂载项目目录和工作目录行为正常。
 
 ## 5. 验收标准
 

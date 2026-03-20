@@ -56,64 +56,66 @@
 - `部分完成`
 - `未完成`
 
-| 需求 | 优先级 | 状态 | 详细文档 |
-|---|---|---:|---|
-| 提供统一 Docker 开发镜像 | P0 | 已完成 | 本文档 |
-| 内置 Go 开发环境 | P0 | 已完成 | 本文档 |
-| 内置 Python 开发环境 | P0 | 部分完成 | 本文档 |
-| 内置 Java 开发环境 | P0 | 未完成 | 本文档 |
-| 内置 AI CLI 工具 | P0 | 已完成 | 本文档 |
-| 用户挂载项目后直接开发 | P0 | 已完成 | 本文档 |
-| 常用基础开发工具齐全 | P1 | 部分完成 | 本文档 |
-| 构建参数可配置 | P1 | 已完成 | 本文档 |
-| Java 版本参数化 | P1 | 未完成 | 本文档 |
-| 文档覆盖构建与运行 | P1 | 部分完成 | [开发指南](../guides/development.md) |
-| VS Code Remote / Dev Containers 可用 | P1 | 部分完成 | [Dev Container 子需求](./devcontainer.md) |
-| 多语言冒烟验证流程 | P1 | 未完成 | [验证与验收子需求](./verification.md) |
-| VS Code Server 预置策略 | P2 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
-| 非 root 用户支持 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
-| 镜像缓存清理与体积控制 | P2 | 部分完成 | [镜像体积排查](../ops/image-size-inspection.md) |
-| Dev Container 配置模板 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
-| 扩展预装或扩展缓存 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
-| 完整离线 VS Code Server 分发 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
+| 编号 | 需求 | 优先级 | 状态 | 详细文档 |
+| --- | --- | --- | --- | --- |
+| R-001 | 提供统一 Docker 开发镜像 | P0 | 已完成 | 本文档 |
+| R-002 | 内置 Go 开发环境 | P0 | 已完成 | 本文档 |
+| R-003 | 内置 Python 开发环境 | P0 | 部分完成 | 本文档 |
+| R-004 | 内置 Java 开发环境 | P0 | 未完成 | 本文档 |
+| R-005 | 内置 AI CLI 工具 | P0 | 已完成 | 本文档 |
+| R-006 | 用户挂载项目后直接开发 | P0 | 已完成 | 本文档 |
+| R-007 | 常用基础开发工具齐全 | P1 | 部分完成 | 本文档 |
+| R-008 | 构建参数可配置 | P1 | 已完成 | 本文档 |
+| R-009 | Java 版本参数化 | P1 | 未完成 | 本文档 |
+| R-010 | 文档覆盖构建与运行 | P1 | 部分完成 | [开发指南](../guides/development.md) |
+| R-011 | VS Code Remote / Dev Containers 可用 | P1 | 部分完成 | [Dev Container 子需求](./devcontainer.md) |
+| R-012 | 多语言冒烟验证流程 | P1 | 未完成 | [验证与验收子需求](./verification.md) |
+| R-013 | VS Code Server 预置策略 | P2 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
+| R-014 | 非 root 用户支持 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
+| R-015 | 镜像缓存清理与体积控制 | P2 | 部分完成 | [镜像体积排查](../ops/image-size-inspection.md) |
+| R-016 | Dev Container 配置模板 | P2 | 未完成 | [Dev Container 子需求](./devcontainer.md) |
+| R-017 | 扩展预装或扩展缓存 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
+| R-018 | 完整离线 VS Code Server 分发 | P3 | 未完成 | [VS Code Remote 子需求](./vscode-remote.md) |
 
 ## 6. 当前要实现的核心需求
 
 ### 6.1 语言运行时
 
-- 必须内置 Go。
-- 必须内置 Java。
-- 必须内置 Python。
-- Python 继续以 `uv` 作为主要包管理与虚拟环境工具。
-- Go 与 Java 应支持版本参数化。
+- `R-002.1` 必须内置 Go。
+- `R-004.1` 必须内置 Java。
+- `R-003.1` 必须内置 Python。
+- `R-003.2` Python 继续以 `uv` 作为主要包管理与虚拟环境工具。
+- `R-002.2` Go 应支持版本参数化。
+- `R-009.1` Java 应支持版本参数化。
 
 ### 6.2 AI CLI
 
-- 第一阶段至少内置：
-  - `claude-code`
-  - `codex`
-- 当前的 `cs` 可保留，但需在使用文档中说明定位。
+- `R-005.1` 第一阶段至少内置 `claude-code`。
+- `R-005.2` 第一阶段至少内置 `codex`。
+- `R-005.3` 当前的 `cs` 可保留，但需在使用文档中说明定位。
 
 ### 6.3 基础开发工具
 
-- 必须提供 `git`、`ssh`、编译工具链和基础 shell 能力。
-- 可逐步补齐 `curl`、`wget`、`zip`、`unzip`、`make`、`zsh`、`sudo`。
+- `R-007.1` 必须提供 `git`。
+- `R-007.2` 必须提供 `ssh`。
+- `R-007.3` 必须提供编译工具链和基础 shell 能力。
+- `R-007.4` 可逐步补齐 `curl`、`wget`、`zip`、`unzip`、`make`、`zsh`、`sudo`。
 
 ### 6.4 项目挂载与工作目录
 
-- 应支持通过 `docker run` 和 `docker compose` 挂载本地项目目录。
-- 应明确默认工作目录及推荐挂载方式。
+- `R-006.1` 应支持通过 `docker run` 挂载本地项目目录。
+- `R-006.2` 应支持通过 `docker compose` 挂载本地项目目录。
+- `R-006.3` 应明确默认工作目录及推荐挂载方式。
 
 ### 6.5 构建配置能力
 
-- 第一阶段至少支持以下构建参数：
-  - `GO_TAG`
-  - `NODE_TAG`
-  - `UV_TAG`
-  - `MIRRORS_URL`
-  - `NPM_CONFIG_REGISTRY`
-  - `UV_DEFAULT_INDEX`
-- 引入 Java 后应补充等价的 Java 版本参数。
+- `R-008.1` 第一阶段至少支持 `GO_TAG`。
+- `R-008.2` 第一阶段至少支持 `NODE_TAG`。
+- `R-008.3` 第一阶段至少支持 `UV_TAG`。
+- `R-008.4` 第一阶段至少支持 `MIRRORS_URL`。
+- `R-008.5` 第一阶段至少支持 `NPM_CONFIG_REGISTRY`。
+- `R-008.6` 第一阶段至少支持 `UV_DEFAULT_INDEX`。
+- `R-009.2` 引入 Java 后应补充等价的 Java 版本参数。
 
 ## 7. 当前阶段范围
 
