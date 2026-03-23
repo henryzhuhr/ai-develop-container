@@ -7,7 +7,14 @@ services:
     container_name: ai-develop-container
     networks:
       - default
+    environment:
+      - NPM_CONFIG_REGISTRY=${NPM_CONFIG_REGISTRY:-}
+      - GOPROXY=${GOPROXY:-https://goproxy.cn,direct}
+      - GOPRIVATE=${GOPRIVATE:-}
+      - GOINSECURE=${GOINSECURE:-}
     volumes:
       - .:/root/ai-develop-container
+      - ~/.costrict:/root/.costrict
+      - ~/.ssh:/root/.ssh:ro
     working_dir: /root/ai-develop-container
     command: ["sleep", 'infinity']
