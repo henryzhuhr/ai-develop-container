@@ -12,10 +12,10 @@
 bash scripts/docker-build.sh
 ```
 
-### 指定 Go 版本构建
+### 指定 Java 版本构建
 
 ```bash
-GO_TAG=1.22 IMAGE_TAG=test bash scripts/docker-build.sh
+JAVA_VERSION=17 IMAGE_TAG=test bash scripts/docker-build.sh
 ```
 
 ### 指定 Java 与 VS Code Server 版本构建
@@ -39,11 +39,7 @@ docker build -t ai-develop-container:0.0.1-dev -f dockerfiles/Dockerfile \
 
 # CI 环境（使用官方源）
 docker build -t ai-develop-container:0.0.1-dev -f dockerfiles/Dockerfile .
-```
 
-查看构建的镜像：
-
-```bash
 docker images ai-develop-container:0.0.1-dev
 ```
 

@@ -1,7 +1,7 @@
 name: Build and Push Image
 
 # 本地测试构建：
-#   GO_TAG=1.24 IMAGE_TAG=test bash scripts/docker-build.sh
+#   JAVA_VERSION=21 IMAGE_TAG=test bash scripts/docker-build.sh
 #   docker images | grep ai-develop-container
 
 on:
@@ -20,7 +20,7 @@ on:
         required: false
 
 jobs:
-  build-multi-go-multi-arch:
+  build-multi-java-multi-arch:
     runs-on: ubuntu-latest
 
     permissions:
@@ -30,10 +30,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go_version: # 构建的 Go 版本列表，后续可以根据需要调整
-          - "1.20"
-          - "1.23"
-          - "1.25"
+        java_version:
+          - "11"
+          - "17"
+          - "21"
 
     steps:
       - name: Checkout repository
@@ -48,19 +48,22 @@ jobs:
       - name: Determine image tags
         id: tags
         env:
-          GO_VERSION: ${{ matrix.go_version }}
+          JAVA_VERSION: ${{ matrix.java_version }}
         run: |
-          GO_TAG="go${GO_VERSION}"
-          TAGS="ai-develop-container:ci-${GO_TAG}"
+          JAVA_TAG="java${JAVA_VERSION}"
+          TAGS="ai-develop-container:ci-${JAVA_TAG}"
 
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
             REF_TAG="${GITHUB_REF#refs/tags/}"
-            TAGS="ghcr.io/${{ github.repository }}:${REF_TAG}-${GO_TAG}"
-            if [[ "${GO_VERSION}" == "1.25" ]]; then
+            TAGS="ghcr.io/${{ github.repository }}:${REF_TAG}-${JAVA_TAG}"
+            if [[ "${JAVA_VERSION}" == "21" ]]; then
               TAGS="${TAGS}"$'\n'"ghcr.io/${{ github.repository }}:${REF_TAG}"
             fi
-          elif [[ "$GITHUB_REF" == "refs/heads/main" && "${GO_VERSION}" == "1.25" ]]; then
-            TAGS="ghcr.io/${{ github.repository }}:latest"
+          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            TAGS="ghcr.io/${{ github.repository }}:${JAVA_TAG}"
+            if [[ "${JAVA_VERSION}" == "21" ]]; then
+              TAGS="${TAGS}"$'\n'"ghcr.io/${{ github.repository }}:latest"
+            fi
           fi
 
           echo "tags<<EOF" >> "$GITHUB_OUTPUT"
@@ -69,23 +72,24 @@ jobs:
 
       # group: login and push to GHCR
       - name: Log in to GHCR
-        if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && matrix.go_version == '1.25') }}
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image for Go ${{ matrix.go_version }}
-        # 本地单架构测试：GO_TAG=${{ matrix.go_version }} bash scripts/docker-build.sh
+      - name: Build and push multi-arch image for Java ${{ matrix.java_version }}
+        # 本地单架构测试：JAVA_VERSION=${{ matrix.java_version }} bash scripts/docker-build.sh
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./dockerfiles/Dockerfile
-          push: ${{ startsWith(github.ref, 'refs/tags/v') || (github.ref == 'refs/heads/main' && matrix.go_version == '1.25') }}
+          push: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            GO_TAG=${{ matrix.go_version }}
+            GO_TAG=1.25
+            JAVA_VERSION=${{ matrix.java_version }}
             UV_TAG=0.10.0
             NODE_TAG=24
             VSCODE_SERVER_COMMITS=${{ inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2' }}
