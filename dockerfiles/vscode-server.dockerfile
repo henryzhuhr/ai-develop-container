@@ -55,10 +55,28 @@ FROM ubuntu:24.04
 
 ARG VSCODE_SERVER_COMMITS
 
+# 安装 OpenSSH 服务器
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        openssh-server \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    mkdir -p /run/sshd
+
+# 设置 root 密码为空
+RUN echo "root:" | chpasswd
+
+# 配置 SSH（支持空密码登录）
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config
+
 COPY --from=vscode-server-builder /out/ /root/.vscode-server/bin/
 
 ENV PATH="/root/.vscode-server/bin:${PATH}"
-
 ENV VSCODE_SERVER_COMMITS=${VSCODE_SERVER_COMMITS}
 
-CMD ["bash", "-lc", "set -euo pipefail; printf '%s\n' ${VSCODE_SERVER_COMMITS//,/ }; ls -1 /root/.vscode-server/bin"]
+EXPOSE 22
+
+ENTRYPOINT ["/usr/sbin/sshd", "-D"]
