@@ -63,8 +63,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -p /run/sshd
 
-# 设置 root 密码为空
-RUN echo "root:" | chpasswd
+# 设置 root 密码为空（使用 passwd -d 删除密码）
+RUN passwd -d root
 
 # 配置 SSH（支持空密码登录）
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
