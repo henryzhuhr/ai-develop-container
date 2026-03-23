@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "skills": {
+    "git-commit-helper": {
+      "source": "henryzhuhr/skills",
+      "sourceType": "github",
+      "computedHash": "89fe4c4196a936dad6b5d6bc19a657e5edee7369a44395394e18ce0ffb2dbdc3"
+    },
+    "git-worktree-helper": {
+      "source": "henryzhuhr/skills",
+      "sourceType": "github",
+      "computedHash": "f33379676c25be4379b07b93a9b9024c1dc6b2e01fbf88bdc0c7ad2afa771b1f"
+    }
+  }
+}
