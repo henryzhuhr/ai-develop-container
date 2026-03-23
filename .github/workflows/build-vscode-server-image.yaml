@@ -28,12 +28,13 @@ name: Build VS Code Server Image
 
 on:
   push:
-    tags:
-      - 'v*' # 匹配所有以 v 开头的 tag，例如 v1.0.0
-    branches:
-      - main
-      - dev
-      - 'feature/*'
+    # 调试用，不默认触发，后续根据需要调整为正式的触发条件
+    # tags:
+    #   - 'v*' # 匹配所有以 v 开头的 tag，例如 v1.0.0
+    # branches:
+    #   - main
+    #   - dev
+    #   - 'feature/*'
   workflow_dispatch:
     inputs:
       image_tag:
