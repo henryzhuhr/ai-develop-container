@@ -1,0 +1,107 @@
+name: Build VS Code Server Image
+
+# =============================================================================
+# VS Code Server 专用镜像构建工作流
+# =============================================================================
+#
+# 镜像说明：
+#   本工作流构建的是 VS Code Server 专用镜像，仅预置多个版本的 VS Code Server
+#   二进制文件，用于 Remote SSH 等功能。
+#
+# 镜像名称：
+#   ghcr.io/henryzhuhr/ai-develop-container-code-server
+#
+#   注意：与主镜像 ghcr.io/henryzhuhr/ai-develop-container 区分：
+#   - 主镜像：包含 Go、Node.js、Python 等完整开发环境（多 Go 版本矩阵构建）
+#   - 本镜像：仅包含 VS Code Server 二进制文件，无其他开发工具
+#
+# 镜像标签：
+#   - tag (v*):  {tag} + latest  [推送]
+#   - main 分支：latest           [推送]
+#   - 其他分支：ci               [仅构建验证]
+#
+# 本地测试构建：
+#   IMAGE_TAG=test bash scripts/docker-build-vscode-server-ghcr.sh
+#   docker images | grep ai-develop-container-code-server
+#
+# =============================================================================
+
+on:
+  # 默认 push 不触发构建，避免频繁构建和推送。需要时可以手动触发或根据需要调整触发条件。
+  # push:
+  #   tags:
+  #     - 'v*' # 匹配所有以 v 开头的 tag，例如 v1.0.0
+  #   branches:
+  #     - main
+  #     - dev
+  #     - 'feature/*'
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag'
+        required: false
+        default: 'latest'
+      vscode_server_commits:
+        description: 'VS Code Server commits (comma-separated)'
+        required: false
+        default: '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7'
+      vscode_server_channel:
+        description: 'VS Code Server channel'
+        required: false
+        default: 'stable'
+
+jobs:
+  build-vscode-server:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Determine image tags
+        id: tags
+        run: |
+          TAGS="ci"
+
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then
+            REF_TAG="${GITHUB_REF#refs/tags/}"
+            TAGS="${REF_TAG}"$'\n'"latest"
+          elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            TAGS="latest"
+          fi
+
+          echo "tags<<EOF" >> "$GITHUB_OUTPUT"
+          echo "${TAGS}" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build vscode-server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./dockerfiles/vscode-server.dockerfile
+          push: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-code-server:${{ steps.tags.outputs.tags }}
+          build-args: |
+            VSCODE_SERVER_COMMITS=${{ github.event.inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2' }}
+            VSCODE_SERVER_CHANNEL=${{ github.event.inputs.vscode_server_channel || 'stable' }}
+          platforms: linux/amd64,linux/arm64
+          pull: true

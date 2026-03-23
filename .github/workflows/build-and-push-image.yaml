@@ -13,6 +13,11 @@ on:
       - dev
       - 'feature/*'
   workflow_dispatch:
+    inputs:
+      vscode_server_commits:
+        description: 'VS Code Server commits (comma-separated)'
+        default: '07ff9d6178ede9a1bd12ad3399074d726ebe6e43'
+        required: false
 
 jobs:
   build-multi-go-multi-arch:
@@ -83,5 +88,6 @@ jobs:
             GO_TAG=${{ matrix.go_version }}
             UV_TAG=0.10.0
             NODE_TAG=24
+            VSCODE_SERVER_COMMITS=${{ inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2' }}
           platforms: linux/amd64,linux/arm64
           pull: true
