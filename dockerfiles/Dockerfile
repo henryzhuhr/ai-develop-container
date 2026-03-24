@@ -8,6 +8,7 @@ ARG VSCODE_SERVER_CHANNEL="stable"
 
 FROM ${GHCR_MIRROR}/astral-sh/uv:${UV_TAG} AS uv-builder
 FROM golang:${GO_TAG} AS golang-builder
+FROM golang:1.25 AS go-toolchain-builder
 FROM node:${NODE_TAG} AS node-builder
 FROM ubuntu:24.04 AS vscode-server-builder
 
@@ -142,6 +143,19 @@ COPY --from=golang-builder /usr/local/go /usr/local/go
 ENV PATH="/usr/local/go/bin:/root/go/bin:$PATH"
 ENV GOPROXY=https://goproxy.cn,direct
 
+# VS Code Go 工具链需要 Go 1.21+，固定安装 Go 1.25 作为工具链
+# 如果主 Go 版本 >= 1.21，则删除工具链以节省空间
+COPY --from=go-toolchain-builder /usr/local/go /usr/local/go1.25
+RUN set -eux; \
+    go_version="$(go version | awk '{print $3}' | sed 's/go//')"; \
+    major="$(echo "${go_version}" | cut -d. -f1)"; \
+    minor="$(echo "${go_version}" | cut -d. -f2)"; \
+    if [ "$major" -gt 1 ] || { [ "$major" -eq 1 ] && [ "$minor" -ge 21 ]; }; then \
+      echo "Go version ${go_version} >= 1.21, removing extra toolchain to save space"; \
+      rm -rf /usr/local/go1.25; \
+    else \
+      echo "Go version ${go_version} < 1.21, keeping Go 1.25 toolchain"; \
+    fi
 
 # ============================================================
 #   Python 环境
