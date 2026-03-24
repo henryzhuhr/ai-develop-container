@@ -27,8 +27,8 @@ jobs:
       fail-fast: false
       matrix:
         java_version:
-          # - "11"
-          # - "17"
+          - "11"
+          - "17"
           - "21"
         go_version:
           - "1.18"
