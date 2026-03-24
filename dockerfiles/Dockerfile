@@ -40,9 +40,9 @@ RUN set -eux; \
       target_dir="/out/${commit}"; \
       extract_dir="/tmp/vscode-server-extract-${commit}"; \
       mkdir -p "${target_dir}" "${extract_dir}"; \
-      curl --fail --show-error --silent --location \
+      curl -C - --fail --show-error --silent --location \
         --retry 5 --retry-all-errors --retry-delay 2 \
-        --connect-timeout 10 --max-time 300 \
+        --connect-timeout 10 --max-time 3000 \
         "https://update.code.visualstudio.com/commit:${commit}/server-linux-${vscode_arch}/${VSCODE_SERVER_CHANNEL}" \
         -o "/tmp/vscode-server-${commit}.tar.gz"; \
       tar -xzf "/tmp/vscode-server-${commit}.tar.gz" -C "${extract_dir}"; \
