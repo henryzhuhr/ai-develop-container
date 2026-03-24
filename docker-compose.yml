@@ -5,9 +5,16 @@ services:
     # 构建后镜像的名称和标签
     image: ai-develop-container:${IMAGE_TAG:-0.0.1-dev}
     container_name: ai-develop-container
+
+    # echo "当前用户 UID:GID 是 ${CURRENT_UID}:${CURRENT_GID}"
+    user: "${CURRENT_UID:-1000}:${CURRENT_GID:-1000}"
     networks:
       - default
     volumes:
       - .:/root/ai-develop-container
+      # (可选) 挂载 ssh 的配置，支持容器内推送代码到远程仓库
+      # 注意：需要宿主机和容器内 UID/GID 一致，否则权限会不匹配
+      # 用法：CURRENT_UID=$(id -u) CURRENT_GID=$(id -g) docker compose up -d
+      - ~/.ssh:/root/.ssh:ro
     working_dir: /root/ai-develop-container
     command: ["sleep", 'infinity']
