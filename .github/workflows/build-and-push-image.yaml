@@ -1,9 +1,5 @@
 name: Build and Push Image
 
-# 本地测试构建：
-#   JAVA_VERSION=21 IMAGE_TAG=test bash scripts/docker-build.sh
-#   docker images | grep ai-develop-container
-
 on:
   push:
     tags:
@@ -11,7 +7,7 @@ on:
     branches:
       - main
       - dev
-      - 'feature/*'
+      - feature/* # 测试用
   workflow_dispatch:
     inputs:
       vscode_server_commits:
@@ -34,6 +30,11 @@ jobs:
           - "11"
           - "17"
           - "21"
+        go_version:
+          - "1.18"
+          - "1.20"
+          - "1.21"
+          - "1.25"
 
     steps:
       - name: Checkout repository
@@ -48,20 +49,23 @@ jobs:
       - name: Determine image tags
         id: tags
         env:
+          GO_VERSION: ${{ matrix.go_version }}
           JAVA_VERSION: ${{ matrix.java_version }}
         run: |
+          GO_TAG="go${GO_VERSION}"
           JAVA_TAG="java${JAVA_VERSION}"
-          TAGS="ai-develop-container:ci-${JAVA_TAG}"
+          IMAGE_TAG="${GO_TAG}-${JAVA_TAG}"
+          TAGS="ai-develop-container:${IMAGE_TAG}"
 
           if [[ "$GITHUB_REF" == refs/tags/* ]]; then
-            REF_TAG="${GITHUB_REF#refs/tags/}"
-            TAGS="ghcr.io/${{ github.repository }}:${REF_TAG}-${JAVA_TAG}"
-            if [[ "${JAVA_VERSION}" == "21" ]]; then
+            REF_TAG="${GITHUB_REF#refs/tags/v}"
+            TAGS="ghcr.io/${{ github.repository }}:${REF_TAG}-${IMAGE_TAG}"
+            if [[ "${GO_VERSION}" == "1.25" && "${JAVA_VERSION}" == "21" ]]; then
               TAGS="${TAGS}"$'\n'"ghcr.io/${{ github.repository }}:${REF_TAG}"
             fi
           elif [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            TAGS="ghcr.io/${{ github.repository }}:${JAVA_TAG}"
-            if [[ "${JAVA_VERSION}" == "21" ]]; then
+            TAGS="ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
+            if [[ "${GO_VERSION}" == "1.25" && "${JAVA_VERSION}" == "21" ]]; then
               TAGS="${TAGS}"$'\n'"ghcr.io/${{ github.repository }}:latest"
             fi
           fi
@@ -79,8 +83,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push multi-arch image for Java ${{ matrix.java_version }}
-        # 本地单架构测试：JAVA_VERSION=${{ matrix.java_version }} bash scripts/docker-build.sh
+      - name: Build and push multi-arch image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -88,10 +91,10 @@ jobs:
           push: ${{ startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main' }}
           tags: ${{ steps.tags.outputs.tags }}
           build-args: |
-            GO_TAG=1.25
+            GO_TAG=${{ matrix.go_version }}
             JAVA_VERSION=${{ matrix.java_version }}
-            UV_TAG=0.10.0
-            NODE_TAG=24
+            UV_TAG=latest
+            NODE_TAG=latest
             VSCODE_SERVER_COMMITS=${{ inputs.vscode_server_commits || '07ff9d6178ede9a1bd12ad3399074d726ebe6e43,cb1933bbc38d329b3595673a600fab5c7368f0a7,42b266171e51a016313f47d0c48aca9295b9cbb2' }}
           platforms: linux/amd64,linux/arm64
           pull: true
