@@ -5,9 +5,18 @@ services:
     # 构建后镜像的名称和标签
     image: ai-develop-container:${IMAGE_TAG:-0.0.1-dev}
     container_name: ai-develop-container
+
     networks:
       - default
     volumes:
       - .:/root/ai-develop-container
+      # (可选) 挂载宿主机 SSH / Git 配置到中转目录，由启动命令复制到 /root 下
+      - ~/.ssh:/data/.ssh
+      - ~/.gitconfig:/data/.gitconfig
     working_dir: /root/ai-develop-container
-    command: ["sleep", 'infinity']
+    command:
+      - bash
+      - -lc
+      - |
+        bash ./scripts/sync-mounted-home-config.sh
+        exec sleep infinity

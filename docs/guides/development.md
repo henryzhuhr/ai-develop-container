@@ -57,6 +57,37 @@ docker run --rm ai-develop-container:0.0.1-dev bash -lc 'ls -1 /root/.vscode-ser
 
 ## 容器操作
 
+### SSH / Git 挂载
+
+当前仓库提供的是“运行时处理”方案，不修改发布镜像本身。对于本仓库的 `docker-compose.yml`，启动命令会在容器启动时把 `/data/.ssh` 和 `/data/.gitconfig` 复制到 `/root/.ssh` 与 `/root/.gitconfig`，并修正 owner / 权限，避免 `root` 用户直接读取宿主机普通用户拥有的 `.ssh` 时触发 OpenSSH 权限检查。
+
+推荐挂载方式：
+
+```bash
+-v ~/.ssh:/data/.ssh \
+-v ~/.gitconfig:/data/.gitconfig \
+```
+
+如果你是直接使用发布镜像执行 `docker run`，镜像本身不会自动复制这些文件。进入容器后，执行一次下面的同步命令即可：
+
+```bash
+if [ -d /data/.ssh ]; then
+  rm -rf /root/.ssh
+  mkdir -p /root/.ssh
+  cp -a /data/.ssh/. /root/.ssh/
+  chown -R root:root /root/.ssh
+  find /root/.ssh -type d -exec chmod 700 {} +
+  find /root/.ssh -type f -exec chmod 600 {} +
+  find /root/.ssh -type f -name '*.pub' -exec chmod 644 {} +
+fi
+
+if [ -f /data/.gitconfig ]; then
+  cp /data/.gitconfig /root/.gitconfig
+  chown root:root /root/.gitconfig
+  chmod 600 /root/.gitconfig
+fi
+```
+
 ### 使用 .env 文件管理环境变量（推荐）
 
 项目提供了 `.env.example` 模板文件，复制为 `.env` 后根据需要修改：
